@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">InstaPost</string>
+    <string name="name">Name</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="no_account">No account yet? Create one</string>
+    <string name="create_account">Create Account</string>
+    <string name="exist_account">Already have an account? Login</string>
+    <string name="invalid_name">Name cannot be empty</string>
+    <string name="invalid_username">Username cannot be empty</string>
+    <string name="username_exists">Username already exists.</string>
+    <string name="invalid_email">Please enter valid email address</string>
+    <string name="invalid_password">At least 6 characters\nAt least one digit\nAt least one
+    uppercase\nNo whitespace in between</string>
+    <string name="create_new_post">Create New Post</string>
+    <string name="registration_failed">Registration failed.</string>
+    <string name="registration_success">Registration success!</string>
+    <string name="login_failed">Incorrect Email or Password.</string>
+
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="drawer_item_1">First Fragment</string>
+    <string name="drawer_item_2">Second Fragment</string>
+    <string name="drawer_item_3">Third Fragment</string>
+
+    <string name="caption">Write a caption...</string>
+    <string name="hashtag">Include a hashtag</string>
+    <string name="create_post">Create Post</string>
+    <string name="cancelpost">Cancel Post</string>
+
+</resources>
