@@ -11,9 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.instapost.dummy.DummyContent;
-import com.android.instapost.dummy.DummyContent.DummyItem;
-
-import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -26,13 +23,9 @@ public class UserListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
-    private static final String ARG_DISPLAY = "list-displayed";
-    private static final String DISPLAY_USERS = "user";
-    private static final String DISPLAY_TAGS = "tags";
 
     // TODO: Customize parameters
     private int mColumnCount = 1;
-    private String mListDisplayed;
     private OnUserListFragmentInteractionListener mListener;
 
     /**
@@ -44,11 +37,10 @@ public class UserListFragment extends Fragment {
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static UserListFragment newInstance(int columnCount, String listDisplayed) {
+    public static UserListFragment newInstance(int columnCount) {
         UserListFragment fragment = new UserListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
-        args.putString(ARG_DISPLAY, listDisplayed);
         fragment.setArguments(args);
         return fragment;
     }
@@ -59,7 +51,6 @@ public class UserListFragment extends Fragment {
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-            mListDisplayed = getArguments().getString(ARG_DISPLAY);
         }
     }
 
@@ -77,7 +68,8 @@ public class UserListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new UserRecyclerAdapter(DummyContent.ITEMS, mListener));
+            // TODO: pass in the list of items you want to display
+            recyclerView.setAdapter(new UserRecyclerAdapter(ContentLists.mUserArrayList, mListener));
         }
         return view;
     }
@@ -112,6 +104,6 @@ public class UserListFragment extends Fragment {
      */
     public interface OnUserListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onUserListFragmentInteraction(DummyItem item);
+        void onUserListFragmentInteraction(User item);
     }
 }

@@ -27,11 +27,12 @@ import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private final static String REGISTER_TAG = "RegisterActivity";
+    private static final String REGISTER_TAG = "RegisterActivity";
     private static final String EXTRA_NAME = "com.android.instapost.name";
     private static final String EXTRA_USERNAME = "com.android.instapost.username";
     private static final String EXTRA_EMAIL = "com.android.instapost.email";
     private static final String USER_DB_PATH = "user";
+    private static final String USERNAME_DB_PATH = "mUsername";
 
     private FirebaseAuth mAuth;
     private EditText mNameText;
@@ -112,8 +113,8 @@ public class RegisterActivity extends AppCompatActivity {
     private void checkUserNameExist(String username) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference reference = database.getReference();
-        Query query = reference.child(USER_DB_PATH).orderByChild("mUsername").equalTo(username);
-        query.addValueEventListener(new ValueEventListener() {
+        Query query = reference.child(USER_DB_PATH).orderByChild(USERNAME_DB_PATH).equalTo(username);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
@@ -131,7 +132,7 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    
+
     private void createAccount() {
         String email = mEmailText.getText().toString().trim();
         String password = mPasswordText.getText().toString().trim();

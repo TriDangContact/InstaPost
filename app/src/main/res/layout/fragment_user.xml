@@ -6,23 +6,32 @@
     android:orientation="vertical">
 
     <ImageView
+        android:id="@+id/fm_user_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/logo"/>
 
     <TextView
-        android:id="@+id/item_number"
+        android:id="@+id/fm_user_username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
         android:textAppearance="?attr/textAppearanceListItem"
-        tools:text="item_1"/>
+        tools:text="item_1_username"/>
 
     <TextView
-        android:id="@+id/content"
+        android:id="@+id/fm_user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
         android:textAppearance="?attr/textAppearanceListItem"
-        tools:text="item_1_content"/>
+        tools:text="item_1_name"/>
+
+    <TextView
+        android:id="@+id/fm_user_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/text_margin"
+        android:textAppearance="?attr/textAppearanceListItem"
+        tools:text="item_1_email"/>
 </LinearLayout>

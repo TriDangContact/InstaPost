@@ -12,23 +12,30 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.instapost.dummy.DummyContent;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, UserListFragment.OnUserListFragmentInteractionListener {
+    private static final String HOME_TAG = "HomeActivity";
     private static final String EXTRA_NAME = "com.android.instapost.name";
     private static final String EXTRA_USERNAME = "com.android.instapost.username";
-    private static final String DISPLAY_USERS = "user";
-    private static final String DISPLAY_TAGS = "tags";
+    private static final String USER_DB_PATH = "user";
+    private static final String TAG_DB_PATH = "tag";
+    private static final String USERNAME_DB_PATH = "mUsername";
+    private static final int COLUMN_COUNT = 1;
 
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
@@ -58,8 +65,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         mNavigationView.setNavigationItemSelectedListener(this);
 
         getUserInfo();
-        addFragment(DISPLAY_USERS);
 
+        // TODO: call method to retrieve data from db before adding any fragments
+        retrieveUserList();
 
     }
 
@@ -102,13 +110,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Toast.makeText(HomeActivity.this, "Drawer Fragment 1 Selected",
                         Toast.LENGTH_SHORT).show();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
-                addFragment(DISPLAY_USERS);
+                retrieveUserList();
                 return true;
             case R.id.nav_second_fragment:
                 Toast.makeText(HomeActivity.this, "Drawer Fragment 2 Selected",
                         Toast.LENGTH_SHORT).show();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
-                addFragment(DISPLAY_TAGS);
+                retrieveTagList();
                 return true;
             case R.id.nav_third_fragment:
                 Toast.makeText(HomeActivity.this, "Drawer Fragment 3 Selected",
@@ -120,9 +128,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void onUserListFragmentInteraction(DummyContent.DummyItem item) {
+    public void onUserListFragmentInteraction(User item) {
         // TODO: handle interaction for UserListFragment
-        Toast.makeText(HomeActivity.this, "Item Selected" + item.id,
+        Toast.makeText(HomeActivity.this, "Item Selected " + item.mUsername,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -162,12 +170,58 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         finish();
     }
 
-    private void addFragment(String listDisplayed) {
+    private void retrieveUserList() {
+        // TODO: implement query to retrieve all users from db
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(USER_DB_PATH);
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    User user = postSnapshot.getValue(User.class);
+                    if (!ContentLists.mUserArrayList.contains(user)) {
+                        ContentLists.mUserArrayList.add(user);
+                    }
+                }
+                updateFragment();
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.d(HOME_TAG, error.getMessage());
+            }
+        });
+
+    }
+
+    // get all the hashtags from tag table in firebase, and add them to the recylerview list
+    private void retrieveTagList() {
+        // TODO: implement query to retrieve all hashtags from db
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(TAG_DB_PATH);
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    String hashtag = postSnapshot.child("mTag").getValue(String.class);
+                    if (!ContentLists.mHashtagArrayList.contains(hashtag)) {
+                        ContentLists.mHashtagArrayList.add(hashtag);
+                    }
+                }
+                updateFragment();
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.d(HOME_TAG, error.getMessage());
+            }
+        });
+    }
+
+    private void updateFragment() {
         FragmentManager manager = getSupportFragmentManager();
-        Fragment fragment = UserListFragment.newInstance(1, listDisplayed);
+        Fragment fragment = UserListFragment.newInstance(COLUMN_COUNT);
         manager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commit();
+            .add(R.id.fragment_container, fragment)
+            .commitAllowingStateLoss();
     }
 
 }

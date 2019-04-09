@@ -14,4 +14,18 @@ public class User {
         this.mEmail = email;
 
     }
+
+    @Override
+    public boolean equals (Object object) {
+        boolean result = false;
+        if (object == null || object.getClass() != getClass()) {
+            result = false;
+        } else {
+            User user = (User) object;
+            if (this.mUsername.equals(user.mUsername)) {
+                result = true;
+            }
+        }
+        return result;
+    }
 }
