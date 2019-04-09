@@ -23,10 +23,12 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_greetings_start">Hello\t</string>
+    <string name="nav_header_greetings_end">!</string>
 
-    <string name="drawer_item_1">First Fragment</string>
-    <string name="drawer_item_2">Second Fragment</string>
-    <string name="drawer_item_3">Third Fragment</string>
+    <string name="drawer_item_1">View All Users</string>
+    <string name="drawer_item_2">View All Tags</string>
+    <string name="drawer_item_3">Switch Between Single or Grid</string>
 
     <string name="caption">Write a caption...</string>
     <string name="hashtag">Include a hashtag</string>

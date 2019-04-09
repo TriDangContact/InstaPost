@@ -7,25 +7,22 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.instapost.UserListFragment.OnUserListFragmentInteractionListener;
-import com.android.instapost.dummy.DummyContent.DummyItem;
-
 import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link User} and makes a call to the
- * specified {@link com.android.instapost.UserListFragment.OnUserListFragmentInteractionListener}.
+ * {@link RecyclerView.Adapter} that can display a {@link Post} and makes a call to the
+ * specified {@link com.android.instapost.PostListFragment.OnPostListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapter.ViewHolder> {
+public class PostRecyclerAdapter extends RecyclerView.Adapter<PostRecyclerAdapter.ViewHolder> {
 
     // TODO: replace with your data type
-    private final List<User> mValues;
-    private final UserListFragment.OnUserListFragmentInteractionListener mListener;
+    private final List<Post> mValues;
+    private final PostListFragment.OnPostListFragmentInteractionListener mListener;
 
     // TODO: replace with your data type
-    public UserRecyclerAdapter(List<User> items,
-                               UserListFragment.OnUserListFragmentInteractionListener listener) {
+    public PostRecyclerAdapter(List<Post> items,
+                               PostListFragment.OnPostListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
@@ -33,7 +30,7 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_user, parent, false);
+                .inflate(R.layout.fragment_post, parent, false);
         return new ViewHolder(view);
     }
 
@@ -41,8 +38,8 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
         holder.mIdView.setText(mValues.get(position).mUsername);
-        holder.mCaptionView.setText(mValues.get(position).mName);
-        holder.mHashtagView.setText(mValues.get(position).mEmail);
+        holder.mCaptionView.setText(mValues.get(position).mCaption);
+        holder.mHashtagView.setText(mValues.get(position).mHashtag);
         // TODO: include a way to get the image of the post
         //holder.mImageView.setImageDrawable(mValues.get(position).image);
 
@@ -52,7 +49,7 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onUserListFragmentInteraction(holder.mItem);
+                    mListener.onPostListFragmentInteraction(holder.mItem);
                 }
             }
         });
@@ -70,15 +67,15 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
         public final TextView mHashtagView;
         public final ImageView mImageView;
         // TODO: replace with your data class object
-        public User mItem;
+        public Post mItem;
 
         public ViewHolder(View view) {
             super(view);
             mView = view;
-            mIdView = (TextView) view.findViewById(R.id.fm_user_username);
-            mCaptionView = (TextView) view.findViewById(R.id.fm_user_name);
-            mHashtagView = (TextView) view.findViewById(R.id.fm_user_email);
-            mImageView = (ImageView) view.findViewById(R.id.fm_user_image);
+            mIdView = (TextView) view.findViewById(R.id.fm_post_username);
+            mCaptionView = (TextView) view.findViewById(R.id.fm_post_caption);
+            mHashtagView = (TextView) view.findViewById(R.id.fm_post_hashtag);
+            mImageView = (ImageView) view.findViewById(R.id.fm_post_image);
         }
 
         @Override

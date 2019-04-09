@@ -35,6 +35,7 @@ public class RegisterActivity extends AppCompatActivity {
     private static final String USERNAME_DB_PATH = "mUsername";
 
     private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
     private EditText mNameText;
     private EditText mUserNameText;
     private EditText mEmailText;
@@ -48,6 +49,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
 
         mNameText = (EditText) findViewById(R.id.register_input_name);
         mUserNameText = (EditText) findViewById(R.id.register_input_username);
@@ -111,9 +113,8 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void checkUserNameExist(String username) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference reference = database.getReference();
-        Query query = reference.child(USER_DB_PATH).orderByChild(USERNAME_DB_PATH).equalTo(username);
+        DatabaseReference usernameTable = mDatabase.getReference();
+        Query query = usernameTable.child(USER_DB_PATH).orderByChild(USERNAME_DB_PATH).equalTo(username);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -134,8 +135,10 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     private void createAccount() {
-        String email = mEmailText.getText().toString().trim();
-        String password = mPasswordText.getText().toString().trim();
+        final String email = mEmailText.getText().toString().trim();
+        final String password = mPasswordText.getText().toString().trim();
+        final String name = mNameText.getText().toString().trim();
+        final String username = mUserNameText.getText().toString().trim();
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -144,9 +147,9 @@ public class RegisterActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Registration successful, return to login screen
                             Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
-                            intent.putExtra(EXTRA_NAME, mNameText.getText().toString());
-                            intent.putExtra(EXTRA_USERNAME, mUserNameText.getText().toString());
-                            intent.putExtra(EXTRA_EMAIL, mEmailText.getText().toString());
+                            intent.putExtra(EXTRA_NAME, name);
+                            intent.putExtra(EXTRA_USERNAME, username);
+                            intent.putExtra(EXTRA_EMAIL, email);
                             setResult(RESULT_OK, intent);
                             finish();
                         } else {
@@ -164,7 +167,7 @@ public class RegisterActivity extends AppCompatActivity {
         Pattern pattern;
         Matcher matcher;
         //At least 1 digit, 1 uppercase, no white spaces in between, at least 6 characters
-        final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[A-Z])(?=\\S+$).{4,}$";
+        final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[A-Z])(?=\\S+$).{6,}$";
 
         pattern = Pattern.compile(PASSWORD_PATTERN);
         matcher = pattern.matcher(password);

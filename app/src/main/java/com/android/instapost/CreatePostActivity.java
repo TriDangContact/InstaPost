@@ -23,10 +23,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CreatePostActivity extends AppCompatActivity {
+    private static final String EXTRA_USERNAME = "com.android.instapost.username";
     private static final String CREATE_POST_TAG = "CreatePostActivity";
     private static final String TAG_DB_PATH = "tag";
     private static final String POST_DB_PATH = "post";
 
+    private FirebaseDatabase mDatabase;
     private ImageView mImageView;
     private ImageButton mCaptureButton;
     private EditText mCaptionText;
@@ -39,6 +41,7 @@ public class CreatePostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_post);
 
+        mDatabase = FirebaseDatabase.getInstance();
         mImageView = (ImageView) findViewById(R.id.createpost_image);
         mCaptureButton = (ImageButton) findViewById(R.id.createpost_capture);
         mCaptionText = (EditText) findViewById(R.id.createpost_input_caption);
@@ -60,15 +63,16 @@ public class CreatePostActivity extends AppCompatActivity {
                 if (validate()) {
                     addPostToDB(createPost());
                     addTagToDB(mHashtagText.getText().toString());
+                    setResult(RESULT_OK);
                     finish();
                 }
-
             }
         });
 
         mCancelLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setResult(RESULT_CANCELED);
                 finish();
             }
         });
@@ -89,7 +93,7 @@ public class CreatePostActivity extends AppCompatActivity {
             mHashtagText.setError(null);
         }
 
-        
+
         return valid;
     }
 
@@ -107,40 +111,39 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private Post createPost(){
         String username = getCurrentUserName();
-        String caption = mCaptionText.getText().toString();
-        String hashtag = mHashtagText.getText().toString();
+        String caption = mCaptionText.getText().toString().trim();
+        String hashtag = mHashtagText.getText().toString().trim();
         // TODO: implement way to store the image and able to retrieve it
         String image = "current image";
         return new Post(username, caption, hashtag, image);
     }
 
     private String getCurrentUserName(){
+        Bundle bundle = getIntent().getExtras();
+        return bundle.getString(EXTRA_USERNAME);
         // TODO: get the uid of the current user, then use it to look in db and get their username
-        return "username";
     }
 
     private void addPostToDB(Post post) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference postTable = database.getReference(POST_DB_PATH);
+        DatabaseReference postTable = mDatabase.getReference(POST_DB_PATH);
         String uid = UUID.randomUUID().toString();
+        post.mId = uid;
         postTable.child(uid).setValue(post);
         Toast.makeText(CreatePostActivity.this, "Post created",
                 Toast.LENGTH_SHORT).show();
     }
 
     // check if a hashtag already exists in firebase; if not, add it
-    private void addTagToDB(final String hashtag) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference reference = database.getReference();
-        Query query = reference.child(TAG_DB_PATH).orderByChild("mTag").equalTo(hashtag);
+    private void addTagToDB(String hashtag) {
+        final String tag = hashtag.trim();
+        final DatabaseReference hashtagTable = mDatabase.getReference();
+        Query query = hashtagTable.child(TAG_DB_PATH).orderByChild("mTag").equalTo(hashtag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference hashtagTable = database.getReference(TAG_DB_PATH);
                     String uid = UUID.randomUUID().toString();
-                    hashtagTable.child(uid).child("mTag").setValue(hashtag);
+                    hashtagTable.child(TAG_DB_PATH).child(uid).child("mTag").setValue(tag);
                 }
             }
             @Override

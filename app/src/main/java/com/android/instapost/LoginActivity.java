@@ -161,7 +161,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void writeNewUser(String uid, String username, String name, String email) {
         DatabaseReference userTable = mDatabase.getReference(USER_DB_PATH);
-        User user = new User(username, name, email);
+        User user = new User(uid, username, name, email);
         userTable.child(uid).setValue(user);
     }
 

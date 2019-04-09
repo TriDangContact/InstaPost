@@ -1,10 +1,8 @@
 package com.android.instapost;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Post {
 
+    public String mId;
     public String mUsername;
     public String mCaption;
     public String mHashtag;
@@ -18,6 +16,20 @@ public class Post {
         this.mCaption = caption;
         this.mHashtag = hashtag;
         this.mImagePath = imagepath;
+    }
+
+    @Override
+    public boolean equals (Object object) {
+        boolean result = false;
+        if (object == null || object.getClass() != getClass()) {
+            result = false;
+        } else {
+            Post post = (Post) object;
+            if (this.mId.equals(post.mId)) {
+                result = true;
+            }
+        }
+        return result;
     }
 
     @Override

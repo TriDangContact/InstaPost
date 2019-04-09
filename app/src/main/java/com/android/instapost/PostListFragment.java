@@ -9,8 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.android.instapost.dummy.DummyContent;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -18,29 +17,29 @@ import java.util.List;
  * A fragment representing a list of Items.
  * <p/>
  * Activities containing this fragment MUST implement the
- * {@link OnUserListFragmentInteractionListener}
+ * {@link OnPostListFragmentInteractionListener}
  * interface.
  */
-public class UserListFragment extends Fragment {
+public class PostListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
 
     // TODO: Customize parameters
     private int mColumnCount;
-    private OnUserListFragmentInteractionListener mListener;
+    private OnPostListFragmentInteractionListener mListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public UserListFragment() {
+    public PostListFragment() {
     }
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static UserListFragment newInstance(int columnCount) {
-        UserListFragment fragment = new UserListFragment();
+    public static PostListFragment newInstance(int columnCount) {
+        PostListFragment fragment = new PostListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
@@ -59,7 +58,7 @@ public class UserListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_user_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_post_list, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -72,8 +71,16 @@ public class UserListFragment extends Fragment {
             }
             // TODO: pass in the list of items you want to display
             ContentLists list = ContentLists.get(getActivity());
-            List<User> userList = list.getUsers();
-            recyclerView.setAdapter(new UserRecyclerAdapter(userList, mListener));
+            List<Post> postList = list.getPosts();
+
+            if (postList.size() == 0) {
+                Toast.makeText(getContext(), "User has no Post.",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else {
+                recyclerView.setAdapter(new PostRecyclerAdapter(postList, mListener));
+            }
+
         }
         return view;
     }
@@ -82,8 +89,8 @@ public class UserListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnUserListFragmentInteractionListener) {
-            mListener = (OnUserListFragmentInteractionListener) context;
+        if (context instanceof OnPostListFragmentInteractionListener) {
+            mListener = (OnPostListFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnListFragmentInteractionListener");
@@ -106,8 +113,8 @@ public class UserListFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnUserListFragmentInteractionListener {
+    public interface OnPostListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onUserListFragmentInteraction(User item);
+        void onPostListFragmentInteraction(Post item);
     }
 }
