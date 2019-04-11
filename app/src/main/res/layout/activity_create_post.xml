@@ -13,18 +13,17 @@
         android:paddingLeft="24dp"
         android:paddingRight="24dp">
 
-
         <ImageView
             android:id="@+id/createpost_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/create_picture_size"
+            android:layout_height="@dimen/create_picture_size"
             android:layout_marginBottom="10dp"
             android:layout_gravity="center_horizontal"
             tools:src="@drawable/logo"/>
 
-        <ImageButton
+        <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/createpost_capture"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/create_picture_size"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="10dp"

@@ -1,46 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    app:cardUseCompatPadding="true"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="3dp">
 
-    <ImageView
-        android:id="@+id/fm_user_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/logo"/>
+    <!-- put whatever you want -->
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center_vertical">
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/fm_user_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerInParent="true"
+            android:src="@drawable/logo"/>
+
         <TextView
             android:id="@+id/fm_user_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/text_margin"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="30dp"
+            android:layout_toRightOf="@id/fm_user_image"
             android:textAppearance="?attr/textAppearanceListItem"
-            tools:text="item_1_username"/>
+            android:textStyle="bold"
+            tools:text="item_1_username" />
 
         <TextView
             android:id="@+id/fm_user_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/text_margin"
+            android:layout_below="@+id/fm_user_username"
+            android:layout_alignParentEnd="true"
+            android:layout_toRightOf="@id/fm_user_image"
             android:textAppearance="?attr/textAppearanceListItem"
-            tools:text="item_1_name"/>
+            tools:text="item_1_name" />
 
         <TextView
             android:id="@+id/fm_user_email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/text_margin"
+            android:layout_below="@+id/fm_user_name"
+            android:layout_alignParentEnd="true"
+            android:layout_toRightOf="@id/fm_user_image"
             android:textAppearance="?attr/textAppearanceListItem"
-            tools:text="item_1_email"/>
+            tools:text="item_1_email" />
 
+    </RelativeLayout>
 
-    </LinearLayout>
-
-</LinearLayout>
+</android.support.v7.widget.CardView>

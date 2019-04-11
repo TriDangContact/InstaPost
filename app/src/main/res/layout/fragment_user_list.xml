@@ -10,4 +10,4 @@
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
     tools:context=".UserListFragment"
-    tools:listitem="@layout/fragment_user" />
+    tools:listitem="@layout/fragment_user"></android.support.v7.widget.RecyclerView>

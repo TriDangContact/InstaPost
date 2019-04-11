@@ -58,29 +58,27 @@ public class PostListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_post_list, container, false);
+        ContentLists list = ContentLists.get(getActivity());
+        List<Post> postList = list.getPosts();
+        View view;
+        if (postList.size() == 0) {
+            view = inflater.inflate(R.layout.fragment_empty, container, false);
+        }
+        else {
+            view = inflater.inflate(R.layout.fragment_post_list, container, false);
 
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+            // Set the adapter
+            if (view instanceof RecyclerView) {
+                Context context = view.getContext();
+                RecyclerView recyclerView = (RecyclerView) view;
+                if (mColumnCount <= 1) {
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                } else {
+                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                }
+                // TODO: pass in the list of items you want to display
+                recyclerView.setAdapter(new PostRecyclerAdapter(postList, mListener, getContext()));
             }
-            // TODO: pass in the list of items you want to display
-            ContentLists list = ContentLists.get(getActivity());
-            List<Post> postList = list.getPosts();
-
-            if (postList.size() == 0) {
-                Toast.makeText(getContext(), "User has no Post.",
-                        Toast.LENGTH_SHORT).show();
-            }
-            else {
-                recyclerView.setAdapter(new PostRecyclerAdapter(postList, mListener));
-            }
-
         }
         return view;
     }
@@ -115,6 +113,6 @@ public class PostListFragment extends Fragment {
      */
     public interface OnPostListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onPostListFragmentInteraction(Post item);
+        void onPostListFragmentInteraction(Post item, int selected);
     }
 }

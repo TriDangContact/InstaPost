@@ -2,4 +2,5 @@
 <resources>
     <dimen name="text_margin">16dp</dimen>
     <dimen name="post_picture_size">350dp</dimen>
+    <dimen name="create_picture_size">100dp</dimen>
 </resources>

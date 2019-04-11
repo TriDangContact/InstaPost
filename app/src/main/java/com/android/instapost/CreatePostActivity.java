@@ -1,5 +1,11 @@
 package com.android.instapost;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
@@ -11,13 +17,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +44,7 @@ public class CreatePostActivity extends AppCompatActivity {
     private static final String TAG_DB_PATH = "tag";
     private static final String POST_DB_PATH = "post";
     private static final String TAG_DB_ORDER_BY = "mHashtag";
+    private static final int REQUEST_IMAGE = 0;
 
     private FirebaseDatabase mDatabase;
     private ImageView mImageView;
@@ -36,6 +53,7 @@ public class CreatePostActivity extends AppCompatActivity {
     private EditText mHashtagText;
     private AppCompatButton mCreatePostButton;
     private TextView mCancelLink;
+    private String mCurrentPhotoPath = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +61,7 @@ public class CreatePostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_post);
 
         mDatabase = FirebaseDatabase.getInstance();
+
         mImageView = (ImageView) findViewById(R.id.createpost_image);
         mCaptureButton = (ImageButton) findViewById(R.id.createpost_capture);
         mCaptionText = (EditText) findViewById(R.id.createpost_input_caption);
@@ -53,19 +72,22 @@ public class CreatePostActivity extends AppCompatActivity {
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: create implicit intent to get a photo
+                onLaunchCamera();
             }
         });
 
         mCreatePostButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: put the post into database
                 if (validate()) {
-                    addPostToDB(createPost());
+                    addPhotoToDB(mCurrentPhotoPath);
                     addTagToDB(mHashtagText.getText().toString());
                     setResult(RESULT_OK);
                     finish();
+                }
+                else {
+                    Toast.makeText(CreatePostActivity.this, getString(R.string.no_photo),
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -79,22 +101,113 @@ public class CreatePostActivity extends AppCompatActivity {
         });
     }
 
+    /*
+    -------------------------------------------------------------------------------
+    START OF: ASK USER TO TAKE A PHOTO PUT IT INTO THE THUMBNAIL
+    -------------------------------------------------------------------------------
+    */
+
+    // use function from Android Document to take a photo
+    public void onLaunchCamera() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.d(CREATE_POST_TAG, ex.getMessage());
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.android.instapost.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE);
+            }
+        }
+    }
+
+    // use function from Android Document to generate an image file
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat(getString(R.string.date_format)).format(new Date());
+        String pathStart = getString(R.string.create_image_path_start);
+        String pathEnd = getString(R.string.create_image_path_end);
+        String imageSuffix = getString(R.string.create_image_suffix);
+
+        String imageFileName = pathStart + timeStamp + pathEnd;
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                imageSuffix,         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    // once the user is done taking a photo, we load it into the thumbnail
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE) {
+            if (resultCode == RESULT_OK) {
+                loadPhotoToThumbnail(mCurrentPhotoPath);
+                galleryAddPic(mCurrentPhotoPath);
+            }
+            if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(CreatePostActivity.this, getString(R.string.cancelled_photo),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void loadPhotoToThumbnail(String imageUrl) {
+        Glide
+            .with(this)
+            .load(imageUrl)
+            .override(mImageView.getWidth(), mImageView.getHeight())
+            .into(mImageView);
+    }
+
+    // add the photo to the device's default gallery app
+    private void galleryAddPic(String imageUrl) {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(imageUrl);
+        Uri contentUri = Uri.fromFile(file);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
+    }
+    /*
+    -------------------------------------------------------------------------------
+    END OF: ASK USER TO TAKE A PHOTO PUT IT INTO THE THUMBNAIL
+    -------------------------------------------------------------------------------
+    */
+
+    // we validate user inputs
     private boolean validate() {
         boolean valid = true;
         // TODO: implement method to validate the post before posting it
         String hashtag = mHashtagText.getText().toString().trim();
+        String photoPath = mCurrentPhotoPath;
+
+        if (photoPath.isEmpty()) {
+            valid = false;
+        }
 
         if (hashtag.isEmpty() || !isValidHashtag(hashtag)) {
-            mHashtagText.setError("At least 1 hashtag required.\nHashtag can only contain alphabetic" +
-                    " " +
-                    "letters.");
+            mHashtagText.setError(getString(R.string.invalid_hashtag));
             valid = false;
         }
         else {
             mHashtagText.setError(null);
         }
-
-
+        Log.d(CREATE_POST_TAG, "valid: " +valid);
         return valid;
     }
 
@@ -110,19 +223,47 @@ public class CreatePostActivity extends AppCompatActivity {
         return matcher.matches();
     }
 
-    private Post createPost(){
+    /*
+    -------------------------------------------------------------------------------
+    START OF: UPLOADING THE POST TO DATABASE
+    -------------------------------------------------------------------------------
+    */
+
+    // 1. before we can create a post, we need to upload the photo to db and get db path so that we
+    // can store it in the Post
+    private void addPhotoToDB(String imageUrl) {
+        // TODO: add the photo to Firebase Storage
+        File file = new File(imageUrl);
+        Uri picUri = Uri.fromFile(file);
+        final String cloudFilePath = getCurrentUserName() + picUri.getLastPathSegment();
+
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference uploadeRef = storageRef.child(cloudFilePath);
+
+        uploadeRef.putFile(picUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>(){
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot){
+                addPostToDB(createPost(cloudFilePath));
+            }
+        }).addOnFailureListener(new OnFailureListener(){
+            public void onFailure(@NonNull Exception exception){
+                Log.e(CREATE_POST_TAG,"Failed to upload picture to cloud storage");
+            }
+        });
+    }
+
+    // 2. once we have the db path of the photo, we we can create our Post
+    private Post createPost(String image){
         String username = getCurrentUserName();
         String caption = mCaptionText.getText().toString().trim();
         String hashtag = mHashtagText.getText().toString().trim();
-        // TODO: implement way to store the image and able to retrieve it
-        String image = "current image";
         return new Post(username, caption, hashtag, image);
     }
 
+    // get the username that was passed in when this activity was started
     private String getCurrentUserName(){
         Bundle bundle = getIntent().getExtras();
         return bundle.getString(EXTRA_USERNAME);
-        // TODO: get the uid of the current user, then use it to look in db and get their username
     }
 
     private void addPostToDB(Post post) {
@@ -153,4 +294,11 @@ public class CreatePostActivity extends AppCompatActivity {
             }
         });
     }
+
+    /*
+    -------------------------------------------------------------------------------
+    END OF: UPLOADING THE POST TO DATABASE
+    -------------------------------------------------------------------------------
+    */
+
 }

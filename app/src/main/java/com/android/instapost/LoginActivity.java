@@ -62,8 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         mRegisterLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
-                startActivityForResult(intent, REQUEST_REGISTER);
+                registerAccount();
             }
         });
     }
@@ -78,37 +77,25 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    //this is called when a user registration is successful
-    //need to grab their account info and store it
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_REGISTER) {
-            if (resultCode == RESULT_OK) {
+    // we need to check user input
+    private boolean validate(String email, String password) {
+        boolean valid = true;
 
-                // TODO: Implement successful signup logic here
-                FirebaseUser user = mAuth.getCurrentUser();
-                Bundle extras = data.getExtras();
-                mName = extras.getString(EXTRA_NAME);
-                mUserName = extras.getString(EXTRA_USERNAME);
-                mEmail = extras.getString(EXTRA_EMAIL);
-
-                writeNewUser(user.getUid(), mUserName, mName, mEmail);
-                Toast.makeText(LoginActivity.this, R.string.registration_success,
-                        Toast.LENGTH_SHORT).show();
-
-                goToHomeActivity(user);
-                // By default we just finish the Activity and log them in automatically
-                //this.finish();
-            }
+        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            mEmailText.setError(getString(R.string.invalid_email));
+            valid = false;
+        } else {
+            mEmailText.setError(null);
         }
-    }
 
-    //if signed in, go to home activity
-    private void goToHomeActivity(FirebaseUser user) {
-        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-        finish();
-        startActivity(intent);
+        if (password.isEmpty()) {
+            mPasswordText.setError(getString(R.string.invalid_password));
+            valid = false;
+        } else {
+            mPasswordText.setError(null);
+        }
+
+        return valid;
     }
 
     private void signIn(String email, String password) {
@@ -138,31 +125,45 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private boolean validate(String email, String password) {
-        boolean valid = true;
-
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            mEmailText.setError(getString(R.string.invalid_email));
-            valid = false;
-        } else {
-            mEmailText.setError(null);
-        }
-
-        if (password.isEmpty()) {
-            mPasswordText.setError(getString(R.string.invalid_password));
-            valid = false;
-        } else {
-            mPasswordText.setError(null);
-        }
-
-        return valid;
+    private void registerAccount() {
+        Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
+        startActivityForResult(intent, REQUEST_REGISTER);
     }
 
+    //need to grab their account info and store it
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_REGISTER) {
+            if (resultCode == RESULT_OK) {
 
-    private void writeNewUser(String uid, String username, String name, String email) {
+                // TODO: Implement successful signup logic here
+                FirebaseUser user = mAuth.getCurrentUser();
+                Bundle extras = data.getExtras();
+                mName = extras.getString(EXTRA_NAME);
+                mUserName = extras.getString(EXTRA_USERNAME);
+                mEmail = extras.getString(EXTRA_EMAIL);
+
+                addUserToDB(user.getUid(), mUserName, mName, mEmail);
+                Toast.makeText(LoginActivity.this, R.string.registration_success,
+                        Toast.LENGTH_SHORT).show();
+
+                goToHomeActivity(user);
+            }
+        }
+    }
+
+    private void addUserToDB(String uid, String username, String name, String email) {
         DatabaseReference userTable = mDatabase.getReference(USER_DB_PATH);
         User user = new User(uid, username, name, email);
         userTable.child(uid).setValue(user);
+    }
+
+    //if signed in, go to home activity
+    private void goToHomeActivity(FirebaseUser user) {
+        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+        finish();
+        startActivity(intent);
     }
 
 }

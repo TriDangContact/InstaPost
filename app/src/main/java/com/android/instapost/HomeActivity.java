@@ -3,6 +3,8 @@ package com.android.instapost;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -10,7 +12,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -19,6 +20,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +30,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
 import java.util.List;
 
 
@@ -42,16 +49,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private static final String USERNAME_DB_ORDER_BY = "mUsername";
     private static final String ID_DB_ORDER_BY = "mId";
     private static final String TAG_DB_ORDER_BY = "mHashtag";
+    private static final String DOWNLOAD_DIR = Environment.getExternalStoragePublicDirectory
+            (Environment.DIRECTORY_DOWNLOADS).getPath();
 
     private FirebaseDatabase mDatabase;
+    private FirebaseStorage mStorage;
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
     private NavigationView mNavigationView;
     private ActionBarDrawerToggle mDrawerToggle;
-    private TextView mHeaderView, mNameView, mUserNameView, mEmailView;
-    private AppCompatButton mLogoutButton;
+    private TextView mHeaderView;
     private String mName, mUserName, mEmail;
-    private Uri mPhotoUri;
 
     private int mColumnCount = 1;
 
@@ -61,6 +69,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_home);
 
         mDatabase = FirebaseDatabase.getInstance();
+        mStorage = FirebaseStorage.getInstance();
 
         mToolbar = (Toolbar) findViewById(R.id.action_bar);
         setSupportActionBar(mToolbar);
@@ -146,38 +155,32 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onUserListFragmentInteraction(User item) {
-        // TODO: handle interaction for UserListFragment
         getSupportActionBar().setTitle(item.mUsername);
         retrievePostList(item.mUsername, USERNAME_DB_ORDER_BY);
     }
 
     @Override
     public void onHashtagListFragmentInteraction(String item) {
-        // TODO: handle interaction for HashtagListFragment
         getSupportActionBar().setTitle(item);
         retrievePostList(item, TAG_DB_ORDER_BY);
     }
 
     @Override
-    public void onPostListFragmentInteraction(Post item) {
+    public void onPostListFragmentInteraction(Post item, int selected) {
         // TODO: handle interaction for PostListFragment
-        Toast.makeText(HomeActivity.this, "Item Selected " + item.mCaption,
+        Toast.makeText(HomeActivity.this, "Item Selected " + item.mImagePath + "Option Selected: " + selected,
                 Toast.LENGTH_SHORT).show();
-    }
-
-
-    // After user is done interacting with CreatePostActivity, we just display the list of users
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CREATE_POST) {
-            if (resultCode == RESULT_OK) {
-                displayUserFragment();
-            }
-            else if (requestCode == RESULT_CANCELED) {
-                displayUserFragment();
-            }
+        switch (selected) {
+            case 1:
+                downloadFile(item.mImagePath);
+                break;
+            case 2:
+                deletePost(item.mId, item.mImagePath);
+                break;
+            default:
+                break;
         }
+
     }
 
     // get the current authorized user's information and store them
@@ -186,10 +189,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (user != null) {
             // Name, email address, and profile photo Url
             mEmail = user.getEmail();
-            mPhotoUri = user.getPhotoUrl();
-
-            // Check if user's email is verified
-            boolean emailVerified = user.isEmailVerified();
 
             // Get the Username, based on the uid
             String uid = user.getUid();
@@ -221,10 +220,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         mHeaderView.setText(header);
     }
 
-    private void createPost() {
-        Intent intent = new Intent(HomeActivity.this, CreatePostActivity.class);
-        intent.putExtra(EXTRA_USERNAME, mUserName);
-        startActivityForResult(intent, REQUEST_CREATE_POST);
+    private void setTitle(String title) {
+        getSupportActionBar().setTitle(title);
     }
 
     private void logout() {
@@ -232,6 +229,32 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         startActivity(new Intent(HomeActivity.this, LoginActivity.class));
         finish();
     }
+
+    private void createPost() {
+        Intent intent = new Intent(HomeActivity.this, CreatePostActivity.class);
+        intent.putExtra(EXTRA_USERNAME, mUserName);
+        startActivityForResult(intent, REQUEST_CREATE_POST);
+    }
+
+    // After user is done interacting with CreatePostActivity, we just display the list of users
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CREATE_POST) {
+            if (resultCode == RESULT_OK) {
+                displayUserFragment();
+            }
+            else if (requestCode == RESULT_CANCELED) {
+                displayUserFragment();
+            }
+        }
+    }
+
+    /*
+    -------------------------------------------------------------------------------------------
+    START OF: RETRIEVING THE APPROPRIATE LIST DEPENDING ON WHAT USER CLICKED, THEN DISPLAY THEM
+    -------------------------------------------------------------------------------------------
+    */
 
     // this gets called when the user selects to view all users
     // get all the users from user table in firebase, and add them to the recyclerview list
@@ -314,19 +337,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    private void changeColumnCount(){
-        if (mColumnCount == 1) {
-            mColumnCount = 2;
-        }
-        else {
-            mColumnCount = 1;
-        }
-    }
-
-    private void setTitle(String title) {
-        getSupportActionBar().setTitle(title);
-    }
-
     // after we have the list of users, we display them
     private void displayUserFragment() {
         FragmentManager manager = getSupportFragmentManager();
@@ -357,6 +367,66 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             .replace(R.id.fragment_container, fragment)
             .addToBackStack(null)
             .commitAllowingStateLoss();
+    }
+
+    /*
+    -------------------------------------------------------------------------------------------
+    END OF: RETRIEVING THE APPROPRIATE LIST DEPENDING ON WHAT USER CLICKED, THEN DISPLAY THEM
+    -------------------------------------------------------------------------------------------
+    */
+
+    private void deletePost(String uid, String filePath) {
+        mDatabase.getReference(POST_DB_PATH).child(uid).removeValue();
+        mStorage.getReference().child(filePath).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                displayPostFragment();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(HomeActivity.this,
+                        "Delete failed..",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void downloadFile(final String fileName){
+        StorageReference storageRef = mStorage.getReference();
+        StorageReference downloadRef = storageRef.child(fileName);
+        final String path = DOWNLOAD_DIR+"/"+fileName;
+        final File fileNameOnDevice = new File(path);
+
+        Log.d(HOME_TAG, "FileName: " +fileName+ ", onDevice: " +fileNameOnDevice);
+        downloadRef.getFile(fileNameOnDevice).addOnSuccessListener(
+                new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    Log.d(HOME_TAG, "downloaded the file");
+                    Toast.makeText(HomeActivity.this,
+                            "Downloaded the file.",
+                            Toast.LENGTH_SHORT).show();
+                    galleryAddPic(path);
+                }
+                }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    Log.d(HOME_TAG, "Failed to download the file");
+                    Toast.makeText(HomeActivity.this,
+                            "Couldn't be downloaded.",
+                            Toast.LENGTH_SHORT).show();
+                }
+        });
+    }
+
+    // add the photo to the device's default gallery app
+    private void galleryAddPic(String imageUrl) {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(imageUrl);
+        Uri contentUri = Uri.fromFile(file);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
     }
 
 }

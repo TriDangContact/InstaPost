@@ -32,10 +32,24 @@
     <string name="drawer_item_1">View All Users</string>
     <string name="drawer_item_2">View All Tags</string>
     <string name="drawer_item_3">Switch Between Single or Grid</string>
+    <string name="no_post">User has no post.</string>
 
     <string name="caption">Write a caption...</string>
     <string name="hashtag">Include a hashtag</string>
+    <string name="invalid_hashtag">"At least 1 hashtag required.\nHashtag can only contain
+        alphabetic letters."</string>
+    <string name="no_photo">You must upload a photo.</string>
+    <string name="cancelled_photo">Photo not taken.</string>
     <string name="create_post">Create Post</string>
     <string name="cancelpost">Cancel Post</string>
+
+    <string name="date_format">yyyyMMdd_HHmmss</string>
+    <string name="create_image_path_start">JPEG_</string>
+    <string name="create_image_path_end">_</string>
+    <string name="create_image_suffix">.jpg</string>
+
+    <string name="post_option">&#8942;</string>
+    <string name="download_image">Download Image</string>
+    <string name="delete_post">Delete Post</string>
 
 </resources>
