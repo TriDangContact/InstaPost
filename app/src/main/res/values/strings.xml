@@ -26,6 +26,9 @@
     <string name="nav_header_greetings_start">Hello\t</string>
     <string name="nav_header_greetings_end">!</string>
 
+    <string name="all_users">Users</string>
+    <string name="all_tags">Tags</string>
+
     <string name="drawer_item_1">View All Users</string>
     <string name="drawer_item_2">View All Tags</string>
     <string name="drawer_item_3">Switch Between Single or Grid</string>

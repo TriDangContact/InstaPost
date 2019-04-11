@@ -16,29 +16,29 @@ import java.util.List;
  * A fragment representing a list of Items.
  * <p/>
  * Activities containing this fragment MUST implement the
- * {@link OnUserListFragmentInteractionListener}
+ * {@link OnHashtagListFragmentInteractionListener}
  * interface.
  */
-public class UserListFragment extends Fragment {
+public class HashtagListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
 
     // TODO: Customize parameters
     private int mColumnCount;
-    private OnUserListFragmentInteractionListener mListener;
+    private OnHashtagListFragmentInteractionListener mListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public UserListFragment() {
+    public HashtagListFragment() {
     }
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static UserListFragment newInstance(int columnCount) {
-        UserListFragment fragment = new UserListFragment();
+    public static HashtagListFragment newInstance(int columnCount) {
+        HashtagListFragment fragment = new HashtagListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
@@ -57,7 +57,7 @@ public class UserListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_user_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_hashtag_list, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -70,8 +70,8 @@ public class UserListFragment extends Fragment {
             }
             // TODO: pass in the list of items you want to display
             ContentLists list = ContentLists.get(getActivity());
-            List<User> userList = list.getUsers();
-            recyclerView.setAdapter(new UserRecyclerAdapter(userList, mListener));
+            List<String> hashtagList = list.getHashtags();
+            recyclerView.setAdapter(new HashtagRecyclerAdapter(hashtagList, mListener));
         }
         return view;
     }
@@ -80,8 +80,8 @@ public class UserListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnUserListFragmentInteractionListener) {
-            mListener = (OnUserListFragmentInteractionListener) context;
+        if (context instanceof OnHashtagListFragmentInteractionListener) {
+            mListener = (OnHashtagListFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnListFragmentInteractionListener");
@@ -104,8 +104,8 @@ public class UserListFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnUserListFragmentInteractionListener {
+    public interface OnHashtagListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onUserListFragmentInteraction(User item);
+        void onHashtagListFragmentInteraction(String item);
     }
 }

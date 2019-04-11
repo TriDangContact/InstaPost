@@ -34,7 +34,7 @@ public class ContentLists {
         return mUserArrayList;
     }
 
-    public List<String> getHastags(){
+    public List<String> getHashtags(){
         return mHashtagArrayList;
     }
 

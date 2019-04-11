@@ -28,12 +28,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
 import java.util.List;
 
 
-public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, UserListFragment.OnUserListFragmentInteractionListener, PostListFragment.OnPostListFragmentInteractionListener {
+public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, UserListFragment.OnUserListFragmentInteractionListener, PostListFragment.OnPostListFragmentInteractionListener, HashtagListFragment.OnHashtagListFragmentInteractionListener {
     private static final String HOME_TAG = "HomeActivity";
     private static final int REQUEST_CREATE_POST = 0;
     private static final String EXTRA_NAME = "com.android.instapost.name";
@@ -41,8 +39,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private static final String USER_DB_PATH = "user";
     private static final String TAG_DB_PATH = "tag";
     private static final String POST_DB_PATH = "post";
-    private static final String USERNAME_DB_PATH = "mUsername";
-    private static final String ID_DB_PATH = "mId";
+    private static final String USERNAME_DB_ORDER_BY = "mUsername";
+    private static final String ID_DB_ORDER_BY = "mId";
+    private static final String TAG_DB_ORDER_BY = "mHashtag";
 
     private FirebaseDatabase mDatabase;
     private DrawerLayout mDrawerLayout;
@@ -92,6 +91,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             mDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+            setTitle(getString(R.string.app_name));
         }
     }
 
@@ -122,23 +122,23 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         switch (item.getItemId()) {
             case R.id.nav_first_fragment:
-                Toast.makeText(HomeActivity.this, "Drawer Fragment 1 Selected",
+                Toast.makeText(HomeActivity.this, R.string.drawer_item_1,
                         Toast.LENGTH_SHORT).show();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
                 retrieveUserList();
                 return true;
             case R.id.nav_second_fragment:
-                Toast.makeText(HomeActivity.this, "Drawer Fragment 2 Selected",
+                Toast.makeText(HomeActivity.this, R.string.drawer_item_2,
                         Toast.LENGTH_SHORT).show();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
                 retrieveTagList();
                 return true;
             case R.id.nav_third_fragment:
-                Toast.makeText(HomeActivity.this, "Drawer Fragment 3 Selected",
+                Toast.makeText(HomeActivity.this, R.string.drawer_item_3,
                         Toast.LENGTH_SHORT).show();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
-                changeColumnCount();
-                displayUserFragment();
+                //changeColumnCount();
+                //displayUserFragment();
                 return true;
         }
         return true;
@@ -147,9 +147,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onUserListFragmentInteraction(User item) {
         // TODO: handle interaction for UserListFragment
-        Toast.makeText(HomeActivity.this, "Item Selected " + item.mUsername,
-                Toast.LENGTH_SHORT).show();
-        retrievePostList(item.mUsername, USERNAME_DB_PATH);
+        getSupportActionBar().setTitle(item.mUsername);
+        retrievePostList(item.mUsername, USERNAME_DB_ORDER_BY);
+    }
+
+    @Override
+    public void onHashtagListFragmentInteraction(String item) {
+        // TODO: handle interaction for HashtagListFragment
+        getSupportActionBar().setTitle(item);
+        retrievePostList(item, TAG_DB_ORDER_BY);
     }
 
     @Override
@@ -159,6 +165,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Toast.LENGTH_SHORT).show();
     }
 
+
+    // After user is done interacting with CreatePostActivity, we just display the list of users
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -172,6 +180,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    // get the current authorized user's information and store them
     private void getUserInfo() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -184,10 +193,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
             // Get the Username, based on the uid
             String uid = user.getUid();
-            Log.d(HOME_TAG, "UID: " +uid);
             DatabaseReference userTable = mDatabase.getReference();
             Query query =
-                    userTable.child(USER_DB_PATH).orderByChild(ID_DB_PATH).equalTo(uid);
+                    userTable.child(USER_DB_PATH).orderByChild(ID_DB_ORDER_BY).equalTo(uid);
             query.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
@@ -235,6 +243,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             public void onDataChange(DataSnapshot snapshot) {
                 ContentLists list = ContentLists.get(getApplicationContext());
                 List<User> userList = list.getUsers();
+                userList.clear();
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     User user = postSnapshot.getValue(User.class);
                     if (!userList.contains(user)) {
@@ -248,7 +257,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Log.d(HOME_TAG, error.getMessage());
             }
         });
-
     }
 
     // this gets called when the user selects to view all hashtags
@@ -260,11 +268,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 ContentLists list = ContentLists.get(getApplicationContext());
-                List<String> hashtagList = list.getHastags();
+                List<String> hashtagList = list.getHashtags();
+                hashtagList.clear();
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
-                    String hashtag = postSnapshot.child("mTag").getValue(String.class);
-                    if (!hashtagList.contains(hashtag)) {
-                        hashtagList.add(hashtag);
+                    for (DataSnapshot snap : postSnapshot.getChildren()) {
+                        String hashtag = snap.getValue(String.class);
+                        if (!hashtagList.contains(hashtag)) {
+                            hashtagList.add(hashtag);
+                        }
                     }
                 }
                 displayTagFragment();
@@ -312,6 +323,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    private void setTitle(String title) {
+        getSupportActionBar().setTitle(title);
+    }
+
     // after we have the list of users, we display them
     private void displayUserFragment() {
         FragmentManager manager = getSupportFragmentManager();
@@ -319,11 +334,19 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         manager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commitAllowingStateLoss();
+        mNavigationView.setCheckedItem(R.id.nav_first_fragment);
+        setTitle(getString(R.string.app_name));
     }
 
     // after we have the list of hashtags, we display them
     private void displayTagFragment() {
-        // TODO: implement TagListFragment
+        FragmentManager manager = getSupportFragmentManager();
+        Fragment fragment = HashtagListFragment.newInstance(mColumnCount);
+        manager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commitAllowingStateLoss();
+        setTitle(getString(R.string.all_tags));
     }
 
     // after we have the list of posts, we display them
@@ -331,8 +354,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         FragmentManager manager = getSupportFragmentManager();
         Fragment fragment = PostListFragment.newInstance(mColumnCount);
         manager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commitAllowingStateLoss();
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commitAllowingStateLoss();
     }
 
 }

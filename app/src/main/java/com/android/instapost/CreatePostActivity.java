@@ -27,6 +27,7 @@ public class CreatePostActivity extends AppCompatActivity {
     private static final String CREATE_POST_TAG = "CreatePostActivity";
     private static final String TAG_DB_PATH = "tag";
     private static final String POST_DB_PATH = "post";
+    private static final String TAG_DB_ORDER_BY = "mHashtag";
 
     private FirebaseDatabase mDatabase;
     private ImageView mImageView;
@@ -137,13 +138,13 @@ public class CreatePostActivity extends AppCompatActivity {
     private void addTagToDB(String hashtag) {
         final String tag = hashtag.trim();
         final DatabaseReference hashtagTable = mDatabase.getReference();
-        Query query = hashtagTable.child(TAG_DB_PATH).orderByChild("mTag").equalTo(hashtag);
+        Query query = hashtagTable.child(TAG_DB_PATH).orderByChild(TAG_DB_ORDER_BY).equalTo(hashtag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
                     String uid = UUID.randomUUID().toString();
-                    hashtagTable.child(TAG_DB_PATH).child(uid).child("mTag").setValue(tag);
+                    hashtagTable.child(TAG_DB_PATH).child(uid).child(TAG_DB_ORDER_BY).setValue(tag);
                 }
             }
             @Override
