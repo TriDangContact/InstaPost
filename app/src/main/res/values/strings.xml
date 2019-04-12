@@ -42,6 +42,7 @@
         alphabetic letters."</string>
     <string name="no_photo">You must upload a photo.</string>
     <string name="cancelled_photo">Photo not taken.</string>
+    <string name="cancelled_gallery">No photo chosen.</string>
     <string name="create_post">Create Post</string>
     <string name="cancelpost">Cancel Post</string>
 

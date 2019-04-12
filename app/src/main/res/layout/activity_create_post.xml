@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="10dp"
-            android:src="@drawable/ic_create_post"/>
+            android:src="@drawable/ic_create_post_dark"/>
 
 
         <EditText android:id="@+id/createpost_input_caption"
@@ -60,6 +60,13 @@
             android:gravity="center"
             android:textSize="20dip"
             android:textColor="@color/colorPrimaryDark"/>
+
+        <ProgressBar
+            android:id="@+id/createpost_loading"
+            android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
 
     </LinearLayout>
 </ScrollView>
