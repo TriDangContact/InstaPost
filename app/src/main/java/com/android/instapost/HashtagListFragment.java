@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -57,21 +58,29 @@ public class HashtagListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_hashtag_list, container, false);
+        ContentLists list = ContentLists.get(getActivity());
+        List<String> hashtagList = list.getHashtags();
+        View view;
+        if (hashtagList.size() == 0) {
+            view = inflater.inflate(R.layout.fragment_empty, container, false);
+            TextView emptyText = (TextView) view.findViewById(R.id.no_list_text);
+            emptyText.setText(R.string.no_tags);
+        }
+        else {
+            view = inflater.inflate(R.layout.fragment_hashtag_list, container, false);
 
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+            // Set the adapter
+            if (view instanceof RecyclerView) {
+                Context context = view.getContext();
+                RecyclerView recyclerView = (RecyclerView) view;
+                if (mColumnCount <= 1) {
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                } else {
+                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                }
+                // TODO: pass in the list of items you want to display
+                recyclerView.setAdapter(new HashtagRecyclerAdapter(hashtagList, mListener));
             }
-            // TODO: pass in the list of items you want to display
-            ContentLists list = ContentLists.get(getActivity());
-            List<String> hashtagList = list.getHashtags();
-            recyclerView.setAdapter(new HashtagRecyclerAdapter(hashtagList, mListener));
         }
         return view;
     }

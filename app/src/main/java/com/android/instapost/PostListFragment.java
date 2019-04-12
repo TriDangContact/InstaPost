@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
@@ -63,6 +64,8 @@ public class PostListFragment extends Fragment {
         View view;
         if (postList.size() == 0) {
             view = inflater.inflate(R.layout.fragment_empty, container, false);
+            TextView emptyText = (TextView) view.findViewById(R.id.no_list_text);
+            emptyText.setText(R.string.no_posts);
         }
         else {
             view = inflater.inflate(R.layout.fragment_post_list, container, false);

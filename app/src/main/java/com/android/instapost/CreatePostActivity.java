@@ -268,7 +268,8 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private void addPostToDB(Post post) {
         DatabaseReference postTable = mDatabase.getReference(POST_DB_PATH);
-        String uid = UUID.randomUUID().toString();
+        String uid = postTable.push().getKey();
+//        String uid = UUID.randomUUID().toString();
         post.mId = uid;
         postTable.child(uid).setValue(post);
         Toast.makeText(CreatePostActivity.this, "Post created",

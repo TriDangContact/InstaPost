@@ -1,6 +1,7 @@
 package com.android.instapost;
 
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +51,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private static final String USERNAME_DB_ORDER_BY = "mUsername";
     private static final String ID_DB_ORDER_BY = "mId";
     private static final String TAG_DB_ORDER_BY = "mHashtag";
+    private static final String FRAGMENT_1 = "FRAGMENT 1";
+    private static final String FRAGMENT_2 = "Fragment 2";
+    private static final String FRAGMENT_3 = "Fragment 3";
     private static final String DOWNLOAD_DIR = Environment.getExternalStoragePublicDirectory
             (Environment.DIRECTORY_DOWNLOADS).getPath();
 
@@ -59,6 +64,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private NavigationView mNavigationView;
     private ActionBarDrawerToggle mDrawerToggle;
     private TextView mHeaderView;
+    private ImageView mHeaderImage;
     private String mName, mUserName, mEmail;
 
     private int mColumnCount = 1;
@@ -88,6 +94,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         View headerView = mNavigationView.getHeaderView(0);
         mHeaderView = (TextView) headerView.findViewById(R.id.header_text);
+        mHeaderImage = (ImageView) headerView.findViewById(R.id.header_imageView);
 
         // TODO: call method to retrieve data from db before adding any fragments
         retrieveUserList();
@@ -142,13 +149,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 mDrawerLayout.closeDrawer(GravityCompat.START);
                 retrieveTagList();
                 return true;
-            case R.id.nav_third_fragment:
-                Toast.makeText(HomeActivity.this, R.string.drawer_item_3,
-                        Toast.LENGTH_SHORT).show();
-                mDrawerLayout.closeDrawer(GravityCompat.START);
-                //changeColumnCount();
-                //displayUserFragment();
-                return true;
         }
         return true;
     }
@@ -168,14 +168,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onPostListFragmentInteraction(Post item, int selected) {
         // TODO: handle interaction for PostListFragment
-        Toast.makeText(HomeActivity.this, "Item Selected " + item.mImagePath + "Option Selected: " + selected,
-                Toast.LENGTH_SHORT).show();
         switch (selected) {
             case 1:
                 downloadFile(item.mImagePath);
                 break;
             case 2:
-                deletePost(item.mId, item.mImagePath);
+                deletePost(item.mId);
+                deletePhoto(item.mImagePath);
+                deleteTag(item.mHashtag);
                 break;
             default:
                 break;
@@ -242,10 +242,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CREATE_POST) {
             if (resultCode == RESULT_OK) {
-                displayUserFragment();
+                displayPostFragment();
             }
             else if (requestCode == RESULT_CANCELED) {
-                displayUserFragment();
+                //displayUserFragment();
             }
         }
     }
@@ -342,10 +342,21 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         FragmentManager manager = getSupportFragmentManager();
         Fragment fragment = UserListFragment.newInstance(mColumnCount);
         manager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, fragment, FRAGMENT_1)
             .commitAllowingStateLoss();
         mNavigationView.setCheckedItem(R.id.nav_first_fragment);
         setTitle(getString(R.string.app_name));
+        // attempt to keep track of fragment on backstack to properly setCheckedItem for Nav
+//        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+//            @Override
+//            public void onBackStackChanged() {
+//                UserListFragment fragment =
+//                        (UserListFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_1);
+//                if (fragment != null && fragment.isVisible()) {
+//                    mNavigationView.setCheckedItem(R.id.nav_first_fragment);
+//                }
+//            }
+//        });
     }
 
     // after we have the list of hashtags, we display them
@@ -353,10 +364,21 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         FragmentManager manager = getSupportFragmentManager();
         Fragment fragment = HashtagListFragment.newInstance(mColumnCount);
         manager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, fragment, FRAGMENT_2)
             .addToBackStack(null)
             .commitAllowingStateLoss();
         setTitle(getString(R.string.all_tags));
+        // attempt to keep track of fragment on backstack to properly setCheckedItem for Nav
+//        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+//            @Override
+//            public void onBackStackChanged() {
+//                HashtagListFragment fragment =
+//                        (HashtagListFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_2);
+//                if (fragment != null && fragment.isVisible() ) {
+//                    mNavigationView.setCheckedItem(R.id.nav_second_fragment);
+//                }
+//            }
+//        });
     }
 
     // after we have the list of posts, we display them
@@ -364,7 +386,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         FragmentManager manager = getSupportFragmentManager();
         Fragment fragment = PostListFragment.newInstance(mColumnCount);
         manager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, fragment, FRAGMENT_3)
             .addToBackStack(null)
             .commitAllowingStateLoss();
     }
@@ -375,8 +397,31 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     -------------------------------------------------------------------------------------------
     */
 
-    private void deletePost(String uid, String filePath) {
+    private void deletePost(String uid) {
         mDatabase.getReference(POST_DB_PATH).child(uid).removeValue();
+    }
+
+    private void deleteTag(String tag) {
+        final DatabaseReference hashtagTable = mDatabase.getReference();
+        Query query =
+                hashtagTable.child(TAG_DB_PATH).orderByChild(TAG_DB_ORDER_BY).equalTo(tag);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    String key = postSnapshot.getKey();
+                    hashtagTable.child(TAG_DB_PATH).child(key).removeValue();
+                }
+                displayPostFragment();
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.d(HOME_TAG, error.getMessage());
+            }
+        });
+    }
+
+    private void deletePhoto(String filePath) {
         mStorage.getReference().child(filePath).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {

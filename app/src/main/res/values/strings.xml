@@ -32,7 +32,9 @@
     <string name="drawer_item_1">View All Users</string>
     <string name="drawer_item_2">View All Tags</string>
     <string name="drawer_item_3">Switch Between Single or Grid</string>
-    <string name="no_post">User has no post.</string>
+    <string name="no_users">There are no Users yet.</string>
+    <string name="no_posts">User has no post.</string>
+    <string name="no_tags">There are no hashtags.</string>
 
     <string name="caption">Write a caption...</string>
     <string name="hashtag">Include a hashtag</string>
