@@ -37,7 +37,6 @@ public class HashtagListFragment extends Fragment {
     }
 
     // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
     public static HashtagListFragment newInstance(int columnCount) {
         HashtagListFragment fragment = new HashtagListFragment();
         Bundle args = new Bundle();
@@ -49,7 +48,6 @@ public class HashtagListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }

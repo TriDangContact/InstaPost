@@ -38,8 +38,6 @@ public class HashtagRecyclerAdapter extends RecyclerView.Adapter<HashtagRecycler
         holder.mItem = mValues.get(position);
         holder.mHashtagView.setText(mValues.get(position));
         // TODO: include a way to get the image of the post
-        //holder.mImageView.setImageDrawable(mValues.get(position).image);
-
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

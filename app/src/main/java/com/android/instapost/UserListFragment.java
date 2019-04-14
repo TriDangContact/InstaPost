@@ -39,7 +39,6 @@ public class UserListFragment extends Fragment {
     }
 
     // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
     public static UserListFragment newInstance(int columnCount) {
         UserListFragment fragment = new UserListFragment();
         Bundle args = new Bundle();

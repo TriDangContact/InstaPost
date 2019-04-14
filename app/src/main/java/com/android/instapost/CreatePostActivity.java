@@ -1,11 +1,8 @@
 package com.android.instapost;
 
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -17,6 +14,7 @@ import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,9 +23,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -37,17 +32,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -103,7 +95,6 @@ public class CreatePostActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (validate()) {
-                    mProgressBar.setVisibility(ProgressBar.VISIBLE);
                     try {
                         downsizeImage(mPhotoUri);
                     } catch (IOException e) {
@@ -111,7 +102,6 @@ public class CreatePostActivity extends AppCompatActivity {
                     }
                     addTagToDB(mHashtagText.getText().toString());
                     addPhotoToDB(mPhotoUri);
-
                 }
                 else {
                     Toast.makeText(CreatePostActivity.this, getString(R.string.no_photo),
@@ -137,10 +127,10 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private void showPictureDialog(){
         AlertDialog.Builder pictureDialog = new AlertDialog.Builder(this);
-        pictureDialog.setTitle("Select Action");
+        pictureDialog.setTitle(R.string.image_dialog_title);
         String[] pictureDialogItems = {
-                "Select photo from gallery",
-                "Capture photo from camera" };
+                getString(R.string.image_dialog_gallery),
+                getString(R.string.image_dialog_camera) };
         pictureDialog.setItems(pictureDialogItems,
                 new DialogInterface.OnClickListener() {
                     @Override
@@ -162,8 +152,9 @@ public class CreatePostActivity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_PICK);
-        startActivityForResult(Intent.createChooser(intent, "Select Image"), REQUEST_GALLERY);
-
+        startActivityForResult(Intent.createChooser(intent,
+                getString(R.string.image_chooser_title)),
+                REQUEST_GALLERY);
     }
 
     // use function from Android Document to take a photo
@@ -187,6 +178,9 @@ public class CreatePostActivity extends AppCompatActivity {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_CAMERA);
             }
+        } else {
+            Toast.makeText(CreatePostActivity.this, getString(R.string.no_camera),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -285,7 +279,6 @@ public class CreatePostActivity extends AppCompatActivity {
         else {
             mHashtagText.setError(null);
         }
-        Log.d(CREATE_POST_TAG, "valid: " +valid);
         return valid;
     }
 
@@ -297,7 +290,6 @@ public class CreatePostActivity extends AppCompatActivity {
 
         pattern = Pattern.compile(PASSWORD_PATTERN);
         matcher = pattern.matcher(hashtag);
-
         return matcher.matches();
     }
 
@@ -310,10 +302,8 @@ public class CreatePostActivity extends AppCompatActivity {
     // 1. before we can create a post, we need to upload the photo to db and get db path so that we
     // can store it in the Post
     private void addPhotoToDB(Uri picUri) {
-        // TODO: add the photo to Firebase Storage
         String uid = UUID.randomUUID().toString();
         final String cloudFilePath = getCurrentUserName() + uid;
-        final ProgressDialog progressDialog = new ProgressDialog(this);
 
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         StorageReference uploadeRef = storageRef.child(cloudFilePath);
@@ -321,20 +311,38 @@ public class CreatePostActivity extends AppCompatActivity {
                 .setContentType("image/jpg")
                 .build();
 
+        // upload to cloud and show progress while doing it
+        showProgressBar();
         uploadeRef.putFile(picUri, metadata).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>(){
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot){
+                // finish the progress bar and
                 addPostToDB(createPost(cloudFilePath));
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                // allow user interaction again
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }
         }).addOnFailureListener(new OnFailureListener(){
             public void onFailure(@NonNull Exception exception){
-                Log.e(CREATE_POST_TAG,"Failed to upload picture to cloud storage");
+                Toast.makeText(CreatePostActivity.this, getString(R.string.failed_upload),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                // set the progressbar status
+                double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
+                        .getTotalByteCount());
+                int progressInt = (int) progress;
+                mProgressBar.setProgress(progressInt);
+                // prevent user from touching anything while uploading
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }
         });
     }
 
-    // 2. once we have the db path of the photo, we we can create our Post
+    // 2. once we have the db path of the photo, we can create our Post
     private Post createPost(String image){
         String username = getCurrentUserName();
         String caption = mCaptionText.getText().toString().trim();
@@ -350,11 +358,11 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private void addPostToDB(Post post) {
         DatabaseReference postTable = mDatabase.getReference(POST_DB_PATH);
+        // get a uid based on time of upload
         String uid = postTable.push().getKey();
-//        String uid = UUID.randomUUID().toString();
         post.mId = uid;
         postTable.child(uid).setValue(post);
-        Toast.makeText(CreatePostActivity.this, "Post created",
+        Toast.makeText(CreatePostActivity.this, getString(R.string.create_post_successful),
                 Toast.LENGTH_SHORT).show();
         setResult(RESULT_OK);
         finish();
@@ -386,4 +394,9 @@ public class CreatePostActivity extends AppCompatActivity {
     -------------------------------------------------------------------------------
     */
 
+    private void showProgressBar() {
+        mProgressBar.setVisibility(ProgressBar.VISIBLE);
+        mProgressBar.setProgress(0);
+        mProgressBar.setMax(100);
+    }
 }

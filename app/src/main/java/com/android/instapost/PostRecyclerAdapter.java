@@ -62,6 +62,9 @@ public class PostRecyclerAdapter extends RecyclerView.Adapter<PostRecyclerAdapte
         holder.mHashtagView.setText(mValues.get(position).mHashtag);
         loadImage(holder.mImageView, mValues.get(position).mImagePath, holder.mProgressBar);
 
+
+        // instead of allowing user to click on the entire post, we only let them click on the
+        // post's Option Menu
 //        holder.mView.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -75,11 +78,8 @@ public class PostRecyclerAdapter extends RecyclerView.Adapter<PostRecyclerAdapte
         holder.mOptionsView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //creating a popup menu
                 PopupMenu popup = new PopupMenu(mContext, holder.mOptionsView);
-                //inflating menu from xml resource
                 popup.inflate(R.menu.post_options_menu);
-                //adding click listener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
@@ -103,7 +103,6 @@ public class PostRecyclerAdapter extends RecyclerView.Adapter<PostRecyclerAdapte
                         }
                     }
                 });
-                //displaying the popup
                 popup.show();
             }
         });

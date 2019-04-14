@@ -1,7 +1,6 @@
 package com.android.instapost;
 
 import android.content.Context;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,17 +25,11 @@ public class ContentLists {
         mHashtagArrayList = new ArrayList<String>();
     }
 
-    public List<Post> getPosts(){
-        return mPostArrayList;
-    }
+    public List<Post> getPosts(){ return mPostArrayList; }
 
-    public List<User> getUsers(){
-        return mUserArrayList;
-    }
+    public List<User> getUsers(){ return mUserArrayList; }
 
     public List<String> getHashtags(){
         return mHashtagArrayList;
     }
-
-
 }

@@ -41,7 +41,6 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
         holder.mCaptionView.setText(mValues.get(position).mName);
         holder.mHashtagView.setText(mValues.get(position).mEmail);
         // TODO: include a way to get the image of the post
-        //holder.mImageView.setImageDrawable(mValues.get(position).image);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

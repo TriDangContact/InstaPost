@@ -41,10 +41,13 @@
     <string name="invalid_hashtag">"At least 1 hashtag required.\nHashtag can only contain
         alphabetic letters."</string>
     <string name="no_photo">You must upload a photo.</string>
+    <string name="no_camera">No camera available.</string>
     <string name="cancelled_photo">Photo not taken.</string>
     <string name="cancelled_gallery">No photo chosen.</string>
     <string name="create_post">Create Post</string>
-    <string name="cancelpost">Cancel Post</string>
+    <string name="create_post_successful">Post created!</string>
+    <string name="cancel_post">Cancel Post</string>
+    <string name="failed_upload">Failed to upload picture to cloud storage</string>
 
     <string name="date_format">yyyyMMdd_HHmmss</string>
     <string name="create_image_path_start">JPEG_</string>
@@ -53,6 +56,14 @@
 
     <string name="post_option">&#8942;</string>
     <string name="download_image">Download Image</string>
+    <string name="download_successful">Download Sucessful!</string>
+    <string name="download_unsuccessful">Download Unsuccessful.</string>
     <string name="delete_post">Delete Post</string>
+    <string name='delete_photo_unsuccessful'>Delete photo failed...</string>
+
+    <string name="image_dialog_title">Select Action</string>
+    <string name="image_dialog_gallery">Select photo from gallery</string>
+    <string name="image_dialog_camera">Capture photo from camera</string>
+    <string name="image_chooser_title">Select Image</string>
 
 </resources>

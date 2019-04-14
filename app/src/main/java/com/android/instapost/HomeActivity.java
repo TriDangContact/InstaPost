@@ -1,7 +1,6 @@
 package com.android.instapost;
 
 import android.content.Intent;
-import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -135,7 +134,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         switch (item.getItemId()) {
             case R.id.nav_first_fragment:
                 Toast.makeText(HomeActivity.this, R.string.drawer_item_1,
@@ -167,7 +165,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onPostListFragmentInteraction(Post item, int selected) {
-        // TODO: handle interaction for PostListFragment
         switch (selected) {
             case 1:
                 downloadFile(item.mImagePath);
@@ -176,11 +173,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 deletePost(item.mId);
                 deletePhoto(item.mImagePath);
                 deleteTag(item.mHashtag);
+                displayPostFragment();
                 break;
             default:
                 break;
         }
-
     }
 
     // get the current authorized user's information and store them
@@ -245,7 +242,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 displayPostFragment();
             }
             else if (requestCode == RESULT_CANCELED) {
-                //displayUserFragment();
+                // don't need to do anything
             }
         }
     }
@@ -347,6 +344,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         mNavigationView.setCheckedItem(R.id.nav_first_fragment);
         setTitle(getString(R.string.app_name));
         // attempt to keep track of fragment on backstack to properly setCheckedItem for Nav
+        // currently not working
 //        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
 //            @Override
 //            public void onBackStackChanged() {
@@ -369,6 +367,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             .commitAllowingStateLoss();
         setTitle(getString(R.string.all_tags));
         // attempt to keep track of fragment on backstack to properly setCheckedItem for Nav
+        // currently not working
 //        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
 //            @Override
 //            public void onBackStackChanged() {
@@ -431,7 +430,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(HomeActivity.this,
-                        "Delete failed..",
+                        getString(R.string.delete_photo_unsuccessful),
                         Toast.LENGTH_SHORT).show();
             }
         });
@@ -443,23 +442,20 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         final String path = DOWNLOAD_DIR+"/"+fileName;
         final File fileNameOnDevice = new File(path);
 
-        Log.d(HOME_TAG, "FileName: " +fileName+ ", onDevice: " +fileNameOnDevice);
         downloadRef.getFile(fileNameOnDevice).addOnSuccessListener(
                 new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(HOME_TAG, "downloaded the file");
                     Toast.makeText(HomeActivity.this,
-                            "Downloaded the file.",
+                            getString(R.string.download_successful),
                             Toast.LENGTH_SHORT).show();
                     galleryAddPic(path);
                 }
                 }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
-                    Log.d(HOME_TAG, "Failed to download the file");
                     Toast.makeText(HomeActivity.this,
-                            "Couldn't be downloaded.",
+                            getString(R.string.download_unsuccessful),
                             Toast.LENGTH_SHORT).show();
                 }
         });
