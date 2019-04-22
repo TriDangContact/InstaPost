@@ -4,9 +4,11 @@ This is an Android Mobile App that mimics some of the features of the popular so
 # Key Features:
 - Firebase Authentication to enable user login and signup
 - Firebase Realtime Database/Storage to store user information, posts, hashtags, and photos
+- Glide v4 for fast and efficient image loading
 
 # To run
-- Clone the repo and run it on the Android Studio emulator
+- Download from Play Store (Coming Soon)
+- Clone the repo and run it on the Android Studio emulator or Android device
 
 # API
 - Min API 23
