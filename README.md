@@ -2,6 +2,12 @@
 This is an Android Mobile App that mimics some of the features of the popular social media app Instagram. The app allow users to signup, login, make and view Posts.
 
 # Key Features:
+- Create a new account and login
+- Click on list of Users to view all of their Posts
+- Click on list of Hashtags to view all Posts containing that Hashtag
+- User can create Posts by selecting images from their Gallery or take a Photo
+
+# Dependencies:
 - Firebase Authentication to enable user login and signup
 - Firebase Realtime Database/Storage to store user information, posts, hashtags, and photos
 - Glide v4 for fast and efficient image loading
