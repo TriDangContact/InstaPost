@@ -13,4 +13,4 @@ This is an Android Mobile App that mimics some of the features of the popular so
 - Target API 24
 
 # Demo
-![alt text]()
+![alt text](https://github.com/TriDangContact/InstaPost/blob/master/assets/screenshots/2019_04_22_12_55_54.jpg | width=50)
